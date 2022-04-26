@@ -113,7 +113,7 @@ func TestTetrahedron(t *testing.T) {
 				t.Errorf("Test: %q :  Got error %v, wanted err=%v", test.name, gotErr, test.wantErr)
 			}
 			if diff := cmp.Diff(test.want, got); diff != "" {
-				t.Errorf("lookUp3D() mismatch (-want +got):\n%s", diff)
+				t.Errorf("tetrahedron() mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}
