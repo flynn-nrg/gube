@@ -36,4 +36,6 @@ type Gube interface {
 var (
 	// ErrOutsideOfDomain is the error returned when trying to look up values outside of the domain.
 	ErrOutsideOfDomain = errors.New("value is outside of domain limits")
+	// ErrInvalidLutType is the error returned when the LUT type is not a supported one.
+	ErrInvalidLutType = errors.New("invalid LUT type")
 )

@@ -1,6 +1,8 @@
 package gube
 
-import "math"
+import (
+	"math"
+)
 
 // Ensure interface compliance.
 var _ Gube = (*GubeImpl)(nil)
@@ -16,7 +18,14 @@ type GubeImpl struct {
 }
 
 func (gi *GubeImpl) LookUp(r float64, g float64, b float64) (RGB, error) {
-	return RGB{}, nil
+	switch gi.tableType {
+	case LUT_1D:
+		return gi.lookUp1D(r, g, b)
+	case LUT_3D:
+		return gi.lookUp3D(r, g, b)
+	default:
+		return RGB{}, ErrInvalidLutType
+	}
 }
 
 func (gi *GubeImpl) Name() string {
@@ -41,6 +50,16 @@ func (gi *GubeImpl) TableData3D() *[][][]RGB {
 
 func (gi *GubeImpl) Domain() (RGB, RGB) {
 	return gi.domainMin, gi.domainMax
+}
+
+func (gi *GubeImpl) lookUp3D(r, g, b float64) (RGB, error) {
+	var res RGB
+
+	if !gi.withinDomain(r, g, b) {
+		return res, ErrOutsideOfDomain
+	}
+
+	return gi.tetrahedron(r*float64(gi.tableSize-1), g*float64(gi.tableSize-1), b*float64(gi.tableSize-1)), nil
 }
 
 func (gi *GubeImpl) lookUp1D(r, g, b float64) (RGB, error) {
