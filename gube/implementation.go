@@ -1,6 +1,7 @@
 package gube
 
 import (
+	"io"
 	"math"
 )
 
@@ -9,12 +10,17 @@ var _ Gube = (*GubeImpl)(nil)
 
 type GubeImpl struct {
 	name        string
-	tableType   int
-	tableSize   int
+	tableType   int64
+	tableSize   int64
 	tableData1D *[]RGB
 	tableData3D *[][][]RGB
 	domainMin   RGB
 	domainMax   RGB
+}
+
+// NewFromReader returns a Gube instance created from the reader data.
+func NewFromReader(r io.Reader) (*GubeImpl, error) {
+	return parseFromReader(r)
 }
 
 func (gi *GubeImpl) LookUp(r float64, g float64, b float64) (RGB, error) {
@@ -32,11 +38,11 @@ func (gi *GubeImpl) Name() string {
 	return gi.name
 }
 
-func (gi *GubeImpl) TableType() int {
+func (gi *GubeImpl) TableType() int64 {
 	return gi.tableType
 }
 
-func (gi *GubeImpl) TableSize() int {
+func (gi *GubeImpl) TableSize() int64 {
 	return gi.tableSize
 }
 
@@ -59,7 +65,7 @@ func (gi *GubeImpl) lookUp3D(r, g, b float64) (RGB, error) {
 		return res, ErrOutsideOfDomain
 	}
 
-	return gi.tetrahedron(r*float64(gi.tableSize-1), g*float64(gi.tableSize-1), b*float64(gi.tableSize-1)), nil
+	return gi.trilinear(r*float64(gi.tableSize-1), g*float64(gi.tableSize-1), b*float64(gi.tableSize-1)), nil
 }
 
 func (gi *GubeImpl) lookUp1D(r, g, b float64) (RGB, error) {

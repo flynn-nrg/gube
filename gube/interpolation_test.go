@@ -39,7 +39,6 @@ func TestLerp(t *testing.T) {
 
 	for _, test := range testData {
 		t.Run(test.name, func(t *testing.T) {
-
 			got := lerp(test.v0, test.v1, test.t)
 			if diff := cmp.Diff(test.want, got); diff != "" {
 				t.Errorf("lerp() mismatch (-want +got):\n%s", diff)
@@ -48,7 +47,7 @@ func TestLerp(t *testing.T) {
 	}
 }
 
-func TestTetrahedron(t *testing.T) {
+func TestTrilinear(t *testing.T) {
 	testData := []struct {
 		name    string
 		r       float64
@@ -97,23 +96,22 @@ func TestTetrahedron(t *testing.T) {
 				domainMax: RGB{1.0, 1.0, 1.0},
 				tableSize: 2,
 				tableData3D: &[][][]RGB{
-					{[]RGB{{0.1, 0.2, 0.4}, {.2, .4, .6}}, []RGB{{0.2, 0.3, 0.4}, {.4, .5, .6}}},
-					{[]RGB{{.6, .5, .4}, {.8, .7, .6}}, []RGB{{.5, .6, .7}, {1, 1, 1}}},
+					{[]RGB{{0.1, 0.2, 0.4}, {.2, .4, .6}}, []RGB{{0.2, 0.2, 0.2}, {.4, .5, .6}}},
+					{[]RGB{{.6, .2, .4}, {.1, .4, .1}}, []RGB{{.8, .4, .6}, {1, 1, 1}}},
 				},
 			},
-			want: RGB{0.4, 0.51, 0.64},
+			want: RGB{0.332, 0.4440000000000001, 0.54},
 		},
 	}
 
 	for _, test := range testData {
 		t.Run(test.name, func(t *testing.T) {
-
 			got, gotErr := test.lut.lookUp3D(test.r, test.g, test.b)
 			if (gotErr != nil) != test.wantErr {
 				t.Errorf("Test: %q :  Got error %v, wanted err=%v", test.name, gotErr, test.wantErr)
 			}
 			if diff := cmp.Diff(test.want, got); diff != "" {
-				t.Errorf("tetrahedron() mismatch (-want +got):\n%s", diff)
+				t.Errorf("trilinear() mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}

@@ -1,7 +1,10 @@
 // Package gube implements functions to work with .cube LUT files.
 package gube
 
-import "errors"
+import (
+	"errors"
+	"image"
+)
 
 const (
 	// LUT_INVALID represents an invalid LUT type.
@@ -17,14 +20,16 @@ type RGB [3]float64
 
 // Gube defines the methods used to work with .cube LUT files.
 type Gube interface {
+	// ProcessImage applies the LUT to the input and returns a new image with the changes.
+	ProcessImage(input image.Image) (image.Image, error)
 	// LookUp returns the transformed RGB value based on the LUT.
 	LookUp(r float64, g float64, b float64) (RGB, error)
 	// Name returns the name of this LUT.
 	Name() string
 	// TableType returns the table type (1D or 3D).
-	TableType() int
+	TableType() int64
 	// TableSize returns the number of entries in this LUT.
-	TableSize() int
+	TableSize() int64
 	// TableData1D returns the table data for 1D LUTs.
 	TableData1D() *[]RGB
 	// TableData3D returns the table data for 3D LUTs.
@@ -38,4 +43,6 @@ var (
 	ErrOutsideOfDomain = errors.New("value is outside of domain limits")
 	// ErrInvalidLutType is the error returned when the LUT type is not a supported one.
 	ErrInvalidLutType = errors.New("invalid LUT type")
+	// ErrInvalidLutData is the error returned when the parser encounters invalid data.
+	ErrInvalidLutData = errors.New("invalid LUT data")
 )

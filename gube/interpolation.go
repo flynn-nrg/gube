@@ -8,13 +8,10 @@ func lerp(v0 float64, v1 float64, t float64) float64 {
 	return (1-t)*v0 + t*v1
 }
 
-// Based on http://www.filmlight.ltd.uk/pdf/whitepapers/FL-TL-TN-0057-SoftwareLib.pdf
-func (gi *GubeImpl) tetrahedron(r, g, b float64) RGB {
-	var res RGB
-
-	rIntF, rFrac := math.Modf(r)
-	gIntF, gFrac := math.Modf(g)
-	bIntF, bFrac := math.Modf(b)
+func (gi *GubeImpl) trilinear(r, g, b float64) RGB {
+	rIntF := math.Trunc(r)
+	gIntF := math.Trunc(g)
+	bIntF := math.Trunc(b)
 	rNextF := gi.next(rIntF)
 	gNextF := gi.next(gIntF)
 	bNextF := gi.next(bIntF)
@@ -25,56 +22,61 @@ func (gi *GubeImpl) tetrahedron(r, g, b float64) RGB {
 	gNext := int(gNextF)
 	bNext := int(bNextF)
 
-	v000 := (*gi.tableData3D)[rInt][gInt][bInt]
-	v111 := (*gi.tableData3D)[rNext][gNext][bNext]
+	c000 := (*gi.tableData3D)[rInt][gInt][bInt]
+	c001 := (*gi.tableData3D)[rInt][gInt][bNext]
+	c010 := (*gi.tableData3D)[rInt][gNext][bInt]
+	c011 := (*gi.tableData3D)[rInt][gNext][bNext]
+	c100 := (*gi.tableData3D)[rNext][gInt][bInt]
+	c101 := (*gi.tableData3D)[rNext][gInt][bNext]
+	c110 := (*gi.tableData3D)[rNext][gNext][bInt]
+	c111 := (*gi.tableData3D)[rNext][gNext][bNext]
 
-	if rFrac > gFrac {
-		if gFrac > bFrac {
-			v100 := (*gi.tableData3D)[rNext][gInt][bInt]
-			v110 := (*gi.tableData3D)[rNext][gNext][bInt]
-			res[0] = (1-rFrac)*v000[0] + (rFrac-gFrac)*v100[0] + (gFrac-bFrac)*v110[0] + bFrac*v111[0]
-			res[1] = (1-rFrac)*v000[1] + (rFrac-gFrac)*v100[1] + (gFrac-bFrac)*v110[1] + bFrac*v111[1]
-			res[2] = (1-rFrac)*v000[2] + (rFrac-gFrac)*v100[2] + (gFrac-bFrac)*v110[2] + bFrac*v111[2]
-		} else if rFrac > bFrac {
-			v100 := (*gi.tableData3D)[rNext][gInt][bInt]
-			v101 := (*gi.tableData3D)[rNext][gInt][bNext]
-			res[0] = (1-rFrac)*v000[0] + (rFrac-bFrac)*v100[0] + (bFrac-gFrac)*v101[0] + gFrac*v111[0]
-			res[1] = (1-rFrac)*v000[1] + (rFrac-bFrac)*v100[1] + (bFrac-gFrac)*v101[1] + gFrac*v111[1]
-			res[2] = (1-rFrac)*v000[2] + (rFrac-bFrac)*v100[2] + (bFrac-gFrac)*v101[2] + gFrac*v111[2]
-		} else {
-			v001 := (*gi.tableData3D)[rInt][gInt][bNext]
-			v101 := (*gi.tableData3D)[rNext][gInt][bNext]
-			res[0] = (1-bFrac)*v000[0] + (bFrac-rFrac)*v001[0] + (rFrac-gFrac)*v101[0] + gFrac*v111[0]
-			res[1] = (1-bFrac)*v000[1] + (bFrac-rFrac)*v001[1] + (rFrac-gFrac)*v101[1] + gFrac*v111[1]
-			res[1] = (1-bFrac)*v000[2] + (bFrac-rFrac)*v001[2] + (rFrac-gFrac)*v101[2] + gFrac*v111[2]
-		}
-	} else {
-		if bFrac > gFrac {
-			v001 := (*gi.tableData3D)[rInt][gInt][bNext]
-			v011 := (*gi.tableData3D)[rInt][gNext][bNext]
-			res[0] = (1-bFrac)*v000[0] + (bFrac-gFrac)*v001[0] + (gFrac-rFrac)*v011[0] + rFrac*v111[0]
-			res[1] = (1-bFrac)*v000[1] + (bFrac-gFrac)*v001[1] + (gFrac-rFrac)*v011[1] + rFrac*v111[1]
-			res[2] = (1-bFrac)*v000[2] + (bFrac-gFrac)*v001[2] + (gFrac-rFrac)*v011[2] + rFrac*v111[2]
-		} else if bFrac > rFrac {
-			v010 := (*gi.tableData3D)[rInt][gNext][bInt]
-			v011 := (*gi.tableData3D)[rInt][gNext][bNext]
-			res[0] = (1-gFrac)*v000[0] + (gFrac-bFrac)*v010[0] + (bFrac-rFrac)*v011[0] + rFrac*v111[0]
-			res[1] = (1-gFrac)*v000[1] + (gFrac-bFrac)*v010[1] + (bFrac-rFrac)*v011[1] + rFrac*v111[1]
-			res[2] = (1-gFrac)*v000[2] + (gFrac-bFrac)*v010[2] + (bFrac-rFrac)*v011[2] + rFrac*v111[2]
-		} else {
-			v010 := (*gi.tableData3D)[rInt][gNext][bInt]
-			v110 := (*gi.tableData3D)[rNext][gNext][bInt]
-			res[0] = (1-gFrac)*v000[0] + (gFrac-rFrac)*v010[0] + (rFrac-bFrac)*v110[0] + bFrac*v111[0]
-			res[1] = (1-gFrac)*v000[0] + (gFrac-rFrac)*v010[0] + (rFrac-bFrac)*v110[0] + bFrac*v111[0]
-			res[2] = (1-gFrac)*v000[0] + (gFrac-rFrac)*v010[0] + (rFrac-bFrac)*v110[0] + bFrac*v111[0]
-		}
-	}
+	newR := trilinearSingleValue(r, g, b, rIntF, rNextF, gIntF, gNextF, bIntF, bNextF,
+		c000[0], c001[0], c010[0], c011[0], c100[0], c101[0], c110[0], c111[0])
+	newG := trilinearSingleValue(r, g, b, rIntF, rNextF, gIntF, gNextF, bIntF, bNextF,
+		c000[1], c001[1], c010[1], c011[1], c100[1], c101[1], c110[1], c111[1])
+	newB := trilinearSingleValue(r, g, b, rIntF, rNextF, gIntF, gNextF, bIntF, bNextF,
+		c000[2], c001[2], c010[2], c011[2], c100[2], c101[2], c110[2], c111[2])
 
-	return res
+	return RGB{newR, newG, newB}
 }
 
-func (gi *GubeImpl) next(x float64) int {
-	return min(int(x+1), gi.tableSize-1)
+// https://en.wikipedia.org/wiki/Trilinear_interpolation
+func trilinearSingleValue(x, y, z, x0, x1, y0, y1, z0, z1, c000, c001, c010, c011, c100, c101, c110, c111 float64) float64 {
+	var xd, yd, zd float64
+
+	if x1 == x0 {
+		xd = x
+	} else {
+		xd = (x - x0) / (x1 - x0)
+	}
+
+	if y1 == y0 {
+		yd = y
+	} else {
+		yd = (y - y0) / (y1 - y0)
+	}
+
+	if z1 == z0 {
+		zd = z
+	} else {
+		zd = (z - z0) / (z1 - z0)
+	}
+
+	c00 := c000*(1-xd) + c100*xd
+	c01 := c001*(1-xd) + c101*xd
+	c10 := c010*(1-xd) + c110*xd
+	c11 := c011*(1-xd) + c111*xd
+
+	c0 := c00*(1-yd) + c10*yd
+	c1 := c01*(1-yd) + c11*yd
+	c := c0*(1-zd) + c1*zd
+
+	return c
+}
+
+func (gi *GubeImpl) next(x float64) float64 {
+	return float64(min(int(x+1), int(gi.tableSize)-1))
 }
 
 func min(a, b int) int {
