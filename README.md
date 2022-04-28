@@ -4,7 +4,34 @@ A golang library to use .cube LUT files.
 
 ## Usage
 
-A convenience `ProcessImage` method is provided that will apply a LUT to an image and return a copy of the image with the changes.
+Once a Gube instance has been created, you can call `LookUp` for each RGB value, as done in the [Izpi path tracer](https://gitlab.com/flynn-nrg/izpi) colour grading code:
+
+```go
+func (cg *ColourGrading) Apply(i image.Image, cam *camera.Camera) error {
+	im, ok := i.(*floatimage.FloatNRGBA)
+	if !ok {
+		return errors.New("only FloatNRGBA image format is supported")
+	}
+	for y := i.Bounds().Min.Y; y < i.Bounds().Max.Y; y++ {
+		for x := i.Bounds().Min.X; x < i.Bounds().Max.X; x++ {
+			pixel := im.FloatNRGBAAt(x, y)
+			rgb, err := cg.g.LookUp(pixel.R, pixel.G, pixel.B)
+			if err != nil {
+				return err
+			}
+			im.Set(x, y, colour.FloatNRGBA{
+				R: rgb[0],
+				G: rgb[1],
+				B: rgb[2],
+				A: pixel.A})
+		}
+	}
+
+	return nil
+}
+```
+
+A convenience `ProcessImage` method is also provided that will apply a LUT to an image and return a copy of the image with the changes.
 
 Example:
 
