@@ -1,6 +1,6 @@
 # Gube
 
-A golang library to use .cube LUT files.
+A golang library to use [.cube LUT](https://en.wikipedia.org/wiki/3D_lookup_table) files used for [colour grading](https://en.wikipedia.org/wiki/Color_grading).
 
 ## Usage
 
