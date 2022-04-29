@@ -6,63 +6,29 @@ import (
 )
 
 func (gi *GubeImpl) ProcessImage(input image.Image) (image.Image, error) {
-	floatImage := toFloat(input)
+	output := image.NewNRGBA(image.Rectangle{
+		Min: image.Point{X: input.Bounds().Min.X, Y: input.Bounds().Min.Y},
+		Max: image.Point{X: input.Bounds().Max.X, Y: input.Bounds().Max.Y}})
 
-	sizeX := input.Bounds().Max.X
-	sizeY := input.Bounds().Max.Y
-
-	i := 0
-	for y := 0; y < sizeY; y++ {
-		for x := 0; x < sizeX; x++ {
-			r := floatImage[i]
-			g := floatImage[i+1]
-			b := floatImage[i+2]
+	for y := input.Bounds().Min.Y; y < input.Bounds().Max.Y; y++ {
+		for x := input.Bounds().Min.X; x < input.Bounds().Max.X; x++ {
+			pixel := color.NRGBAModel.Convert(input.At(x, y)).(color.NRGBA)
+			dMin, dMax := gi.Domain()
+			r := dMin[0] + (float64(pixel.R)/255.0)*(dMax[0]-dMin[0])
+			g := dMin[1] + (float64(pixel.G)/255.0)*(dMax[0]-dMin[0])
+			b := dMin[2] + (float64(pixel.B)/255.0)*(dMax[0]-dMin[0])
 			rgb, err := gi.LookUp(r, g, b)
 			if err != nil {
 				return nil, err
 			}
-			floatImage[i] = rgb[0]
-			floatImage[i+1] = rgb[1]
-			floatImage[i+2] = rgb[2]
-			i += 3
+			outPixel := color.NRGBA{
+				R: uint8(((rgb[0] - dMin[0]) / (dMax[0] - dMin[0])) * 255.0),
+				G: uint8(((rgb[1] - dMin[1]) / (dMax[1] - dMin[1])) * 255.0),
+				B: uint8(((rgb[2] - dMin[2]) / (dMax[2] - dMin[2])) * 255.0),
+				A: pixel.A}
+			output.Set(x, y, outPixel)
 		}
 	}
 
-	return toImage(floatImage, sizeX, sizeY), nil
-}
-
-func toFloat(i image.Image) []float64 {
-	var data []float64
-	sizeX := i.Bounds().Max.X
-	sizeY := i.Bounds().Max.Y
-	for y := 0; y < sizeY; y++ {
-		for x := 0; x < sizeX; x++ {
-			pixel := color.NRGBAModel.Convert(i.At(x, y)).(color.NRGBA)
-			r := pixel.R
-			g := pixel.G
-			b := pixel.B
-			data = append(data, float64(r)/255.0, float64(g)/255.0, float64(b)/255.0)
-		}
-	}
-
-	return data
-}
-
-func toImage(data []float64, sizeX int, sizeY int) image.Image {
-	var i int
-	imageData := image.NewNRGBA(image.Rectangle{Max: image.Point{X: sizeX, Y: sizeY}})
-	for y := 0; y < sizeY; y++ {
-		for x := 0; x < sizeX; x++ {
-			r := data[i]
-			i++
-			g := data[i]
-			i++
-			b := data[i]
-			i++
-			pixel := color.NRGBA{R: uint8(r * 255), G: uint8(g * 255), B: uint8(b * 255), A: 255}
-			imageData.Set(x, y, pixel)
-		}
-	}
-
-	return imageData
+	return output, nil
 }
