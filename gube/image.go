@@ -15,8 +15,8 @@ func (gi *GubeImpl) ProcessImage(input image.Image) (image.Image, error) {
 			pixel := color.NRGBAModel.Convert(input.At(x, y)).(color.NRGBA)
 			dMin, dMax := gi.Domain()
 			r := dMin[0] + (float64(pixel.R)/255.0)*(dMax[0]-dMin[0])
-			g := dMin[1] + (float64(pixel.G)/255.0)*(dMax[0]-dMin[0])
-			b := dMin[2] + (float64(pixel.B)/255.0)*(dMax[0]-dMin[0])
+			g := dMin[1] + (float64(pixel.G)/255.0)*(dMax[1]-dMin[1])
+			b := dMin[2] + (float64(pixel.B)/255.0)*(dMax[2]-dMin[2])
 			rgb, err := gi.LookUp(r, g, b)
 			if err != nil {
 				return nil, err
