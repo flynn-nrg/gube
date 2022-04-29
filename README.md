@@ -1,5 +1,7 @@
 # Gube
 
+![Unit Tests](https://github.com/flynn-nrg/gube/actions/workflows/test.yml/badge.svg)
+
 A golang library to use [.cube LUT](https://en.wikipedia.org/wiki/3D_lookup_table) files used for [colour grading](https://en.wikipedia.org/wiki/Color_grading).
 
 ## Usage
