@@ -10,8 +10,8 @@ func (gi *GubeImpl) ProcessImage(input image.Image) (image.Image, error) {
 		Min: image.Point{X: input.Bounds().Min.X, Y: input.Bounds().Min.Y},
 		Max: image.Point{X: input.Bounds().Max.X, Y: input.Bounds().Max.Y}})
 
-	for y := input.Bounds().Min.Y; y < input.Bounds().Max.Y; y++ {
-		for x := input.Bounds().Min.X; x < input.Bounds().Max.X; x++ {
+	for y := input.Bounds().Min.Y; y <= input.Bounds().Max.Y; y++ {
+		for x := input.Bounds().Min.X; x <= input.Bounds().Max.X; x++ {
 			pixel := color.NRGBAModel.Convert(input.At(x, y)).(color.NRGBA)
 			dMin, dMax := gi.Domain()
 			r := dMin[0] + (float64(pixel.R)/255.0)*(dMax[0]-dMin[0])
